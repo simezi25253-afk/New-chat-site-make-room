@@ -1,0 +1,95 @@
+const express = require("express");
+const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
+const { v4: uuidv4 } = require("uuid");
+const Room = require("./models/Room");
+require("dotenv").config();
+
+const app = express();
+app.use(express.urlencoded({ extended: true }));
+
+// MongoDB 接続
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB connected (factory)"))
+  .catch(err => console.log(err));
+
+
+// ルーム作成フォーム（JWT を保持したまま表示）
+app.get("/create", (req, res) => {
+  const token = req.query.token;
+
+  if (!token) return res.send("トークンがありません。ログインしてください。");
+
+  res.send(`
+    <form action="/create?token=${token}" method="POST">
+      <input name="roomName" placeholder="ルーム名" required />
+      <input name="password" placeholder="パスワード（任意）" />
+      <button type="submit">ルームを作成</button>
+    </form>
+  `);
+});
+
+
+// 工場の本体（ルーム生成）
+app.post("/create", async (req, res) => {
+  const token = req.query.token;
+
+  if (!token) return res.send("トークンがありません。ログインしてください。");
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return res.send("トークンが無効です。ログインし直してください。");
+  }
+
+  const username = decoded.username;
+
+  const { roomName, password } = req.body;
+
+  // UUID 生成
+  const roomId = uuidv4();
+
+  // DB に保存
+  await Room.create({
+    roomId,
+    roomName,
+    password: password || "",
+    createdBy: username
+  });
+
+  // 完成したルームへ JWT を付けてリダイレクト
+  res.redirect(`/room/${roomId}?token=${token}`);
+});
+
+
+// チャットルーム本体（テンプレート）
+app.get("/room/:roomId", async (req, res) => {
+  const token = req.query.token;
+
+  if (!token) return res.send("トークンがありません。ログインしてください。");
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return res.send("トークンが無効です。ログインし直してください。");
+  }
+
+  const username = decoded.username;
+
+  const room = await Room.findOne({ roomId: req.params.roomId });
+
+  if (!room) return res.send("このルームは存在しません");
+
+  res.send(`
+    <h1>${room.roomName}</h1>
+    <p>ルームID: ${room.roomId}</p>
+    <p>ユーザー名: ${username}</p>
+    <p>ここにチャットUIを入れる</p>
+  `);
+});
+
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Factory running"));
