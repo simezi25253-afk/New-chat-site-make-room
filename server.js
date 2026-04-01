@@ -14,20 +14,20 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.log(err));
 
 
-// ルーム作成フォーム（JWT を保持したまま表示）
 app.get("/create", (req, res) => {
   const token = req.query.token;
-
   if (!token) return res.send("トークンがありません。ログインしてください。");
 
   res.send(`
-    <form action="/create?token=${token}" method="POST">
+    <form action="/create" method="POST">
+      <input type="hidden" name="token" value="${token}" />
       <input name="roomName" placeholder="ルーム名" required />
       <input name="password" placeholder="パスワード（任意）" />
       <button type="submit">ルームを作成</button>
     </form>
   `);
 });
+
 
 
 // 工場の本体（ルーム生成）
