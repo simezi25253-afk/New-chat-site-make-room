@@ -90,6 +90,15 @@ app.get("/room/:roomId", async (req, res) => {
   `);
 });
 
+// トップページ（工場の入り口）
+app.get("/", (req, res) => {
+  res.send(`
+    <h1>チャットルーム工場へようこそ 🚀</h1>
+    <p>ログインサイトからトークンを取得して、ルームを作成してください。</p>
+    <a href="/create?token=YOUR_TOKEN_HERE">ルーム作成ページへ</a>
+  `);
+});
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Factory running"));
