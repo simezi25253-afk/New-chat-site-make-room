@@ -7,15 +7,16 @@ require("dotenv").config();
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // MongoDB 接続
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected (factory)"))
   .catch(err => console.log(err));
 
-
 app.get("/create", (req, res) => {
-　const token = req.body.token;
+  const token = req.query.token; // ← 修正ポイント
+
   if (!token) return res.send("トークンがありません。ログインしてください。");
 
   res.send(`
@@ -28,10 +29,8 @@ app.get("/create", (req, res) => {
   `);
 });
 
-
-
 app.post("/create", async (req, res) => {
-  const token = req.body.token;  // ← 修正ポイント
+  const token = req.body.token; // ← ここも重要！
 
   if (!token) return res.send("トークンがありません。ログインしてください。");
 
@@ -57,8 +56,6 @@ app.post("/create", async (req, res) => {
   res.redirect(`/room/${roomId}?token=${token}`);
 });
 
-
-// チャットルーム本体（テンプレート）
 app.get("/room/:roomId", async (req, res) => {
   const token = req.query.token;
 
@@ -85,7 +82,6 @@ app.get("/room/:roomId", async (req, res) => {
   `);
 });
 
-// トップページ（工場の入り口）
 app.get("/", (req, res) => {
   res.send(`
     <h1>チャットルーム工場へようこそ 🚀</h1>
@@ -93,7 +89,6 @@ app.get("/", (req, res) => {
     <a href="/create?token=YOUR_TOKEN_HERE">ルーム作成ページへ</a>
   `);
 });
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Factory running"));
