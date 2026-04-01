@@ -15,7 +15,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 
 app.get("/create", (req, res) => {
-  const token = req.query.token;
+　const token = req.body.token;
   if (!token) return res.send("トークンがありません。ログインしてください。");
 
   res.send(`
