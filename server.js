@@ -30,9 +30,8 @@ app.get("/create", (req, res) => {
 
 
 
-// 工場の本体（ルーム生成）
 app.post("/create", async (req, res) => {
-  const token = req.query.token;
+  const token = req.body.token;  // ← 修正ポイント
 
   if (!token) return res.send("トークンがありません。ログインしてください。");
 
@@ -44,13 +43,10 @@ app.post("/create", async (req, res) => {
   }
 
   const username = decoded.username;
-
   const { roomName, password } = req.body;
 
-  // UUID 生成
   const roomId = uuidv4();
 
-  // DB に保存
   await Room.create({
     roomId,
     roomName,
@@ -58,7 +54,6 @@ app.post("/create", async (req, res) => {
     createdBy: username
   });
 
-  // 完成したルームへ JWT を付けてリダイレクト
   res.redirect(`/room/${roomId}?token=${token}`);
 });
 
