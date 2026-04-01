@@ -86,7 +86,7 @@ app.get("/room/:roomId", async (req, res) => {
     <h1>${room.roomName}</h1>
     <p>ルームID: ${room.roomId}</p>
     <p>ユーザー名: ${username}</p>
-    <p>ここにチャットUIを入れる</p>
+    <p>https://new-chat-site-chat-room.onrender.com</p>
   `);
 });
 
