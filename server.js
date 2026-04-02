@@ -15,7 +15,7 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.log(err));
 
 app.get("/create", (req, res) => {
-  // 🔥 デバッグログ（原因特定用）
+  // デバッグログ
   console.log("受け取った token:", req.query.token);
   console.log("デコード後 token:", decodeURIComponent(req.query.token || ""));
   console.log("JWT_SECRET:", process.env.JWT_SECRET);
@@ -95,11 +95,11 @@ app.get("/room/:roomId", async (req, res) => {
   `);
 });
 
+// ★ テストリンクは完全に削除済み
 app.get("/", (req, res) => {
   res.send(`
     <h1>チャットルーム工場へようこそ 🚀</h1>
-    <p>ログインサイトからトークンを取得して、ルームを作成してください。</p>
-    <a href="/create?token=YOUR_TOKEN_HERE">ルーム作成ページへ</a>
+    <p>ログインサイトからアクセスしてください。</p>
   `);
 });
 
