@@ -15,9 +15,16 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.log(err));
 
 app.get("/create", (req, res) => {
-  const token = req.query.token; // ← 修正ポイント
+  const token = decodeURIComponent(req.query.token); // ← トークン破損防止
 
   if (!token) return res.send("トークンがありません。ログインしてください。");
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return res.send("トークンが無効です。ログインし直してください。");
+  }
 
   res.send(`
     <form action="/create" method="POST">
@@ -30,7 +37,7 @@ app.get("/create", (req, res) => {
 });
 
 app.post("/create", async (req, res) => {
-  const token = req.body.token; // ← ここも重要！
+  const token = req.body.token;
 
   if (!token) return res.send("トークンがありません。ログインしてください。");
 
@@ -43,7 +50,6 @@ app.post("/create", async (req, res) => {
 
   const username = decoded.username;
   const { roomName, password } = req.body;
-
   const roomId = uuidv4();
 
   await Room.create({
@@ -69,7 +75,6 @@ app.get("/room/:roomId", async (req, res) => {
   }
 
   const username = decoded.username;
-
   const room = await Room.findOne({ roomId: req.params.roomId });
 
   if (!room) return res.send("このルームは存在しません");
