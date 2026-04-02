@@ -22,15 +22,16 @@ app.get("/create", (req, res) => {
       <input name="roomName" placeholder="ルーム名" required />
       <input name="password" placeholder="パスワード（任意）" />
       <input name="createdBy" placeholder="作成者名（任意）" />
+      <input name="userId" placeholder="ユーザーID（Home用）" required />
       <button type="submit">ルームを作成</button>
     </form>
   `);
 });
 
 
-// ルーム作成処理（白画面の原因を修正済み）
+// ルーム作成処理（Home に通知する処理を追加）
 app.post("/create", async (req, res) => {
-  const { roomName, password, createdBy } = req.body;
+  const { roomName, password, createdBy, userId } = req.body;
   const roomId = uuidv4();
 
   const newRoom = await Room.create({
@@ -40,12 +41,28 @@ app.post("/create", async (req, res) => {
     createdBy: createdBy || "匿名"
   });
 
-  // ★ 修正ポイント：作成後に正しくルームページへリダイレクト
+  // ▼▼▼ Home サイトへ「ルーム作成したよ！」と通知 ▼▼▼
+  try {
+    await fetch("https://new-chat-site-home.onrender.com/api/addRoom", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        roomId,
+        roomName
+      })
+    });
+  } catch (err) {
+    console.log("Home サイトへの通知に失敗:", err);
+  }
+  // ▲▲▲ ここまで追加 ▲▲▲
+
+  // 作成後にルームページへ移動
   res.redirect(`/room/${newRoom.roomId}`);
 });
 
 
-// ルームページ（白画面にならないように完全修正版）
+// ルームページ
 app.get("/room/:roomId", async (req, res) => {
   const room = await Room.findOne({ roomId: req.params.roomId });
 
