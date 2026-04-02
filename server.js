@@ -15,7 +15,12 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.log(err));
 
 app.get("/create", (req, res) => {
-  const token = decodeURIComponent(req.query.token); // ← トークン破損防止
+  // 🔥 デバッグログ（原因特定用）
+  console.log("受け取った token:", req.query.token);
+  console.log("デコード後 token:", decodeURIComponent(req.query.token || ""));
+  console.log("JWT_SECRET:", process.env.JWT_SECRET);
+
+  const token = decodeURIComponent(req.query.token || "");
 
   if (!token) return res.send("トークンがありません。ログインしてください。");
 
@@ -23,6 +28,7 @@ app.get("/create", (req, res) => {
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
+    console.log("JWT 検証エラー:", err.message);
     return res.send("トークンが無効です。ログインし直してください。");
   }
 
@@ -45,6 +51,7 @@ app.post("/create", async (req, res) => {
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
+    console.log("POST /create JWT 検証エラー:", err.message);
     return res.send("トークンが無効です。ログインし直してください。");
   }
 
@@ -71,6 +78,7 @@ app.get("/room/:roomId", async (req, res) => {
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
+    console.log("room JWT 検証エラー:", err.message);
     return res.send("トークンが無効です。ログインし直してください。");
   }
 
